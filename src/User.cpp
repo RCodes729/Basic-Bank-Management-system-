@@ -27,7 +27,17 @@ User::User(int userId, const std::string& username, const std::string& passwordH
 }
 
 std::string User::hashPassword(const std::string& password) {
-    // Simple hash function - in production, use a proper cryptographic library like bcrypt
+    // WARNING: This is a demonstration-only hash function using std::hash.
+    // For production use, replace with a secure password hashing library such as:
+    // - bcrypt (libsodium's crypto_pwhash or libbcrypt)
+    // - Argon2 (libsodium's crypto_pwhash with Argon2id)
+    // - scrypt
+    // 
+    // std::hash is NOT cryptographically secure and should never be used
+    // for real password storage as it lacks:
+    // - Salt (vulnerable to rainbow table attacks)
+    // - Computational cost (vulnerable to brute force)
+    // - Memory hardness (vulnerable to GPU/ASIC attacks)
     std::hash<std::string> hasher;
     size_t hash = hasher(password);
     

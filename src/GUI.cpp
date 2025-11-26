@@ -125,14 +125,29 @@ BankGUI::BankGUI(std::shared_ptr<BankService> service)
     , m_statusColor(sf::Color::White)
     , m_focusedInput(nullptr)
 {
-    // Load font
-    if (!m_font.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")) {
-        // Try alternative font paths
-        if (!m_font.loadFromFile("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf")) {
-            if (!m_font.loadFromFile("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf")) {
-                throw std::runtime_error("Failed to load font");
-            }
+    // Load font - try common system font paths
+    // For better portability, consider bundling a font in the assets/ directory
+    // or using environment variables to configure font paths
+    std::vector<std::string> fontPaths = {
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",          // Debian/Ubuntu
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf",
+        "/usr/share/fonts/TTF/DejaVuSans.ttf",                       // Arch Linux
+        "/usr/share/fonts/dejavu/DejaVuSans.ttf",                    // Fedora
+        "/Library/Fonts/Arial.ttf",                                   // macOS
+        "C:\\Windows\\Fonts\\arial.ttf"                               // Windows
+    };
+    
+    bool fontLoaded = false;
+    for (const auto& path : fontPaths) {
+        if (m_font.loadFromFile(path)) {
+            fontLoaded = true;
+            break;
         }
+    }
+    
+    if (!fontLoaded) {
+        throw std::runtime_error("Failed to load font. Please install DejaVu or Liberation fonts.");
     }
 
     m_window.setFramerateLimit(60);

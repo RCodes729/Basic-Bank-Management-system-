@@ -447,31 +447,29 @@ bool BankService::recordTransaction(int accountId, TransactionType type, double 
                                      double balanceAfter, const std::string& description,
                                      int relatedAccountId) 
 {
-    std::string query;
-    std::vector<std::string> params;
+    // Build query with optional related_account_id parameter
+    // Using NULL for optional related_account_id when not provided
+    std::string query = 
+        "INSERT INTO transactions (account_id, transaction_type, amount, "
+        "balance_after, description, related_account_id) "
+        "VALUES ($1, $2, $3, $4, $5, $6)";
     
+    std::vector<std::string> params = {
+        std::to_string(accountId),
+        Transaction::typeToString(type),
+        std::to_string(amount),
+        std::to_string(balanceAfter),
+        description
+    };
+    
+    // Handle optional related_account_id - PostgreSQL accepts empty string as NULL
+    // for integer columns when using parameterized queries
     if (relatedAccountId >= 0) {
-        query = "INSERT INTO transactions (account_id, transaction_type, amount, "
-                "balance_after, description, related_account_id) "
-                "VALUES ($1, $2, $3, $4, $5, $6)";
-        params = {
-            std::to_string(accountId),
-            Transaction::typeToString(type),
-            std::to_string(amount),
-            std::to_string(balanceAfter),
-            description,
-            std::to_string(relatedAccountId)
-        };
+        params.push_back(std::to_string(relatedAccountId));
     } else {
+        // Use a separate query without related_account_id to properly set NULL
         query = "INSERT INTO transactions (account_id, transaction_type, amount, "
                 "balance_after, description) VALUES ($1, $2, $3, $4, $5)";
-        params = {
-            std::to_string(accountId),
-            Transaction::typeToString(type),
-            std::to_string(amount),
-            std::to_string(balanceAfter),
-            description
-        };
     }
     
     return m_db->executeParams(query, params);
